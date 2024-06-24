@@ -1,11 +1,14 @@
 package com.lulu.luoj.model.dto.questionsubmit;
 
+import lombok.Data;
+
 /**
  * @author lulu
  * @version 1.0
  * @description 判题信息
  * @date 2024/6/23 14:33
  */
+@Data
 public class JudgeInfo {
     /**
      *  程序执行消息

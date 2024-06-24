@@ -10,10 +10,8 @@ import com.lulu.luoj.common.ResultUtils;
 import com.lulu.luoj.constant.UserConstant;
 import com.lulu.luoj.exception.BusinessException;
 import com.lulu.luoj.exception.ThrowUtils;
-import com.lulu.luoj.model.dto.question.QuestionAddRequest;
-import com.lulu.luoj.model.dto.question.QuestionEditRequest;
-import com.lulu.luoj.model.dto.question.QuestionQueryRequest;
-import com.lulu.luoj.model.dto.question.QuestionUpdateRequest;
+import com.lulu.luoj.model.dto.question.*;
+import com.lulu.luoj.model.dto.user.UserQueryRequest;
 import com.lulu.luoj.model.entity.Question;
 import com.lulu.luoj.model.entity.User;
 import com.lulu.luoj.model.vo.QuestionVO;
@@ -63,6 +61,14 @@ public class QuestionController {
         List<String> tags = questionAddRequest.getTags();
         if (tags != null) {
             question.setTags(JSONUtil.toJsonStr(tags));
+        }
+        List<JudgeCase> judgeCases = questionAddRequest.getJudgeCase();
+        if (judgeCases != null) {
+            question.setJudgeCases(JSONUtil.toJsonStr(judgeCases));
+        }
+        JudgeConfig judgeConfig = questionAddRequest.getJudgeConfig();
+        if (judgeConfig != null) {
+            question.setJudgeConfig(JSONUtil.toJsonStr(judgeConfig));
         }
         questionService.validQuestion(question, true);
         User loginUser = userService.getLoginUser(request);
@@ -118,6 +124,14 @@ public class QuestionController {
         if (tags != null) {
             question.setTags(JSONUtil.toJsonStr(tags));
         }
+        List<JudgeCase> judgeCases = questionUpdateRequest.getJudgeCase();
+        if (judgeCases != null) {
+            question.setJudgeCases(JSONUtil.toJsonStr(judgeCases));
+        }
+        JudgeConfig judgeConfig = questionUpdateRequest.getJudgeConfig();
+        if (judgeConfig != null) {
+            question.setJudgeConfig(JSONUtil.toJsonStr(judgeConfig));
+        }
         // 参数校验
         questionService.validQuestion(question, false);
         long id = questionUpdateRequest.getId();
@@ -147,7 +161,7 @@ public class QuestionController {
     }
 
     /**
-     * 分页获取列表（仅管理员）
+     * 分页获取题目列表（仅管理员）
      *
      * @param questionQueryRequest
      * @return
@@ -224,6 +238,14 @@ public class QuestionController {
         List<String> tags = questionEditRequest.getTags();
         if (tags != null) {
             question.setTags(JSONUtil.toJsonStr(tags));
+        }
+        List<JudgeCase> judgeCases = questionEditRequest.getJudgeCase();
+        if (judgeCases != null) {
+            question.setJudgeCases(JSONUtil.toJsonStr(judgeCases));
+        }
+        JudgeConfig judgeConfig = questionEditRequest.getJudgeConfig();
+        if (judgeConfig != null) {
+            question.setJudgeConfig(JSONUtil.toJsonStr(judgeConfig));
         }
         // 参数校验
         questionService.validQuestion(question, false);
