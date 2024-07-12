@@ -5,7 +5,7 @@ import com.lulu.luoj.model.entity.Question;
 import cn.hutool.json.JSONUtil;
 import com.lulu.luoj.model.dto.question.JudgeCase;
 import com.lulu.luoj.model.dto.question.JudgeConfig;
-import com.lulu.luoj.model.dto.questionsubmit.JudgeInfo;
+import com.lulu.luoj.judge.codesandbox.model.JudgeInfo;
 import com.lulu.luoj.model.enums.JudgeInfoMessageEnum;
 
 /**

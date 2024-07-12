@@ -1,6 +1,6 @@
 package com.lulu.luoj.judge.strategy;
 
-import com.lulu.luoj.model.dto.questionsubmit.JudgeInfo;
+import com.lulu.luoj.judge.codesandbox.model.JudgeInfo;
 
 /**
  * @author lulu

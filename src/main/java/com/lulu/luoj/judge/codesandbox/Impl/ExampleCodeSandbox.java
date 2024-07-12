@@ -1,6 +1,6 @@
 package com.lulu.luoj.judge.codesandbox.Impl;
 import java.util.List;
-import com.lulu.luoj.model.dto.questionsubmit.JudgeInfo;
+import com.lulu.luoj.judge.codesandbox.model.JudgeInfo;
 
 import com.lulu.luoj.judge.codesandbox.CodeSandbox;
 import com.lulu.luoj.judge.codesandbox.model.ExecuteCodeRequest;

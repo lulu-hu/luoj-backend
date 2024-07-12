@@ -106,4 +106,4 @@ knife4j:
           - com.lulu.luoj.controller
 #代码沙箱配置
 codesandbox:
-  type: example
+  type: remote

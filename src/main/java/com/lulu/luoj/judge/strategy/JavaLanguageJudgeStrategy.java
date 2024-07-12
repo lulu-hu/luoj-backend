@@ -3,11 +3,14 @@ package com.lulu.luoj.judge.strategy;
 import cn.hutool.json.JSONUtil;
 import com.lulu.luoj.model.dto.question.JudgeCase;
 import com.lulu.luoj.model.dto.question.JudgeConfig;
-import com.lulu.luoj.model.dto.questionsubmit.JudgeInfo;
+import com.lulu.luoj.judge.codesandbox.model.JudgeInfo;
 import com.lulu.luoj.model.entity.Question;
 import com.lulu.luoj.model.enums.JudgeInfoMessageEnum;
 
 import java.util.List;
+import java.util.Optional;
+
+import static org.checkerframework.checker.nullness.Opt.orElse;
 
 /**
  * @author lulu
@@ -27,14 +30,14 @@ public class JavaLanguageJudgeStrategy implements JudgeStrategy {
     public JudgeInfo doJudge(JudgeContext judgeContext) {
 
         JudgeInfo judgeInfo = judgeContext.getJudgeInfo();
+        Long memory = Optional.ofNullable(judgeInfo.getMemory()).orElse(0L);
+        Long time = Optional.ofNullable(judgeInfo.getTime()).orElse(0L);
         List<String> inputList = judgeContext.getInputList();
         List<String> outputList = judgeContext.getOutputList();
         Question question = judgeContext.getQuestion();
         List<JudgeCase> judgeCaseList = judgeContext.getJudgeCaseList();
         JudgeInfoMessageEnum judgeInfoMessageEnum = JudgeInfoMessageEnum.ACCEPTED;
         JudgeInfo judgeInfoResponse = new JudgeInfo();
-        Long memory = judgeInfo.getMemory();
-        Long time = judgeInfo.getTime();
         judgeInfoResponse.setMemory(memory);
         judgeInfoResponse.setTime(time);
         if(outputList.size() != inputList.size()){
