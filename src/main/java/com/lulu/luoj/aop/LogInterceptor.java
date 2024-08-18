@@ -1,7 +1,17 @@
 package com.lulu.luoj.aop;
 
 import java.util.UUID;
+import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import com.auth0.jwt.exceptions.AlgorithmMismatchException;
+import com.auth0.jwt.exceptions.SignatureVerificationException;
+import com.auth0.jwt.exceptions.TokenExpiredException;
+import com.lulu.luoj.common.ErrorCode;
+import com.lulu.luoj.exception.BusinessException;
+import com.lulu.luoj.utils.JwtUtils;
+import io.jsonwebtoken.Claims;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.aspectj.lang.ProceedingJoinPoint;
@@ -12,12 +22,11 @@ import org.springframework.util.StopWatch;
 import org.springframework.web.context.request.RequestAttributes;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
+import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 
 /**
  * 请求响应日志 AOP
  *
- * @author <a href="https://github.com/liyupi">程序员鱼皮</a>
- * @from <a href="https://yupi.icu">编程导航知识星球</a>
  **/
 @Aspect
 @Component
@@ -27,7 +36,7 @@ public class LogInterceptor {
     /**
      * 执行拦截
      */
-    @Around("execution(* com.yupi.luoj.controller.*.*(..))")
+    @Around("execution(* com.lulu.luoj.controller.*.*(..))")
     public Object doInterceptor(ProceedingJoinPoint point) throws Throwable {
         // 计时
         StopWatch stopWatch = new StopWatch();
@@ -52,5 +61,6 @@ public class LogInterceptor {
         log.info("request end, id: {}, cost: {}ms", requestId, totalTimeMillis);
         return result;
     }
+
 }
 

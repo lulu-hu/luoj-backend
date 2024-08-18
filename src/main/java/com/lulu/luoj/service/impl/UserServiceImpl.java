@@ -3,6 +3,8 @@ package com.lulu.luoj.service.impl;
 import static com.lulu.luoj.constant.UserConstant.USER_LOGIN_STATE;
 
 import cn.hutool.core.collection.CollUtil;
+import com.auth0.jwt.JWT;
+import com.auth0.jwt.interfaces.DecodedJWT;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.lulu.luoj.common.ErrorCode;
@@ -12,15 +14,19 @@ import com.lulu.luoj.model.enums.UserRoleEnum;
 import com.lulu.luoj.model.vo.LoginUserVO;
 import com.lulu.luoj.model.vo.UserVO;
 import com.lulu.luoj.service.UserService;
+import com.lulu.luoj.utils.JwtUtils;
 import com.lulu.luoj.utils.SqlUtils;
 import com.lulu.luoj.constant.CommonConstant;
 import com.lulu.luoj.exception.BusinessException;
 import com.lulu.luoj.mapper.UserMapper;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest;
+
 import lombok.extern.slf4j.Slf4j;
 import me.chanjar.weixin.common.bean.WxOAuth2UserInfo;
 import org.apache.commons.lang3.StringUtils;
@@ -106,8 +112,15 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "用户不存在或密码错误");
         }
         // 3. 记录用户的登录态
+        // 3. 生成JWT Token
+        Map<String, Object> map = new HashMap<>();
+        map.put("userRole", user.getUserRole());
+        map.put("id", user.getId());
+        String token = JwtUtils.getToken(map);
         request.getSession().setAttribute(USER_LOGIN_STATE, user);
-        return this.getLoginUserVO(user);
+        LoginUserVO loginUserVO =  this.getLoginUserVO(user);
+        loginUserVO.setToken(token);
+        return loginUserVO;
     }
 
     @Override
@@ -151,14 +164,15 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     @Override
     public User getLoginUser(HttpServletRequest request) {
         // 先判断是否已登录
-        Object userObj = request.getSession().getAttribute(USER_LOGIN_STATE);
-        User currentUser = (User) userObj;
-        if (currentUser == null || currentUser.getId() == null) {
+        String token = request.getHeader("Authorization");
+        //检验token
+        DecodedJWT decodedJWT = JwtUtils.decode(token);
+        String id = decodedJWT.getClaim("id").asString();
+        if (!JwtUtils.validateToken(decodedJWT.getToken())) {
             throw new BusinessException(ErrorCode.NOT_LOGIN_ERROR);
         }
         // 从数据库查询（追求性能的话可以注释，直接走缓存）
-        long userId = currentUser.getId();
-        currentUser = this.getById(userId);
+       User currentUser = this.getById(id);
         if (currentUser == null) {
             throw new BusinessException(ErrorCode.NOT_LOGIN_ERROR);
         }
@@ -210,11 +224,18 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
      */
     @Override
     public boolean userLogout(HttpServletRequest request) {
+        String token = request.getHeader("Authorization");
+        if (token == null) {
+            throw new BusinessException(ErrorCode.NOT_LOGIN_ERROR, "未登录");
+        }
+        DecodedJWT decodedJWT = JwtUtils.decode(token);
+        String id = decodedJWT.getClaim("id").asString();
+
         if (request.getSession().getAttribute(USER_LOGIN_STATE) == null) {
             throw new BusinessException(ErrorCode.OPERATION_ERROR, "未登录");
         }
         // 移除登录态
-        request.getSession().removeAttribute(USER_LOGIN_STATE);
+        request.getSession().removeAttribute(USER_LOGIN_STATE + id);
         return true;
     }
 

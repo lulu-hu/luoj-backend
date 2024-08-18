@@ -2,13 +2,13 @@ package com.lulu.luoj.model.vo;
 
 import java.io.Serializable;
 import java.util.Date;
+
+import com.baomidou.mybatisplus.annotation.TableField;
 import lombok.Data;
 
 /**
  * 已登录用户视图（脱敏）
  *
- * @author <a href="https://github.com/liyupi">程序员鱼皮</a>
- * @from <a href="https://yupi.icu">编程导航知识星球</a>
  **/
 @Data
 public class LoginUserVO implements Serializable {
@@ -32,6 +32,12 @@ public class LoginUserVO implements Serializable {
      * 用户简介
      */
     private String userProfile;
+
+    /**
+     * token
+     */
+    @TableField(exist = false)
+    private String token;
 
     /**
      * 用户角色：user/admin/ban

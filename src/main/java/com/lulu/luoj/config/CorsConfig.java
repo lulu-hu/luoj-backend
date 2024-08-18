@@ -1,7 +1,9 @@
 package com.lulu.luoj.config;
 
+import com.lulu.luoj.aop.JWTInterceptor;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
+import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 /**
@@ -16,6 +18,7 @@ public class CorsConfig implements WebMvcConfigurer {
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         // 覆盖所有请求
+        //设置允许跨域的路径
         registry.addMapping("/**")
                 // 允许发送 Cookie
                 .allowCredentials(true)
@@ -25,4 +28,14 @@ public class CorsConfig implements WebMvcConfigurer {
                 .allowedHeaders("*")
                 .exposedHeaders("*");
     }
+
+    @Override
+    public void addInterceptors(InterceptorRegistry registry) {
+        registry.addInterceptor(new JWTInterceptor())
+                .addPathPatterns("api /**")
+                .excludePathPatterns("/user/login", "/user/register", "/user/logout",
+                        "/swagger-resources/**", "/swagger-ui.html",
+                        "/v2/api-docs", "/webjars *", "/doc.html");
+    }
 }
+
