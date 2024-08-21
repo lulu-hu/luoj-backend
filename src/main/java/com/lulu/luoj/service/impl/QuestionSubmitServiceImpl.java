@@ -2,11 +2,13 @@ package com.lulu.luoj.service.impl;
 
 import cn.hutool.core.collection.CollUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.lulu.luoj.common.ErrorCode;
 import com.lulu.luoj.constant.CommonConstant;
 import com.lulu.luoj.exception.BusinessException;
+import com.lulu.luoj.exception.ThrowUtils;
 import com.lulu.luoj.judge.JudgeService;
 import com.lulu.luoj.model.dto.question.QuestionQueryRequest;
 import com.lulu.luoj.model.dto.questionsubmit.QuestionSubmitAddRequest;
@@ -66,13 +68,13 @@ public class QuestionSubmitServiceImpl extends ServiceImpl<QuestionSubmitMapper,
      */
     @Override
     public long doQuestionSubmit(QuestionSubmitAddRequest questionSubmitAddRequest, User loginUser) {
-        //todo 校验编程语言是否合法
+        // 校验编程语言是否合法
         String language = questionSubmitAddRequest.getLanguage();
         QuestionSubmitLanguageEnum languageEnum = QuestionSubmitLanguageEnum.getEnumByValue(language);
         if (languageEnum == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "编程语言错误");
         }
-
+        ThrowUtils.throwIf(StringUtils.isBlank(questionSubmitAddRequest.getCode()), ErrorCode.PARAMS_ERROR, "代码不能为空");
         long questionId = questionSubmitAddRequest.getQuestionId();
         // 判断实体是否存在，根据类别获取实体
         Question question = questionService.getById(questionId);
@@ -87,7 +89,8 @@ public class QuestionSubmitServiceImpl extends ServiceImpl<QuestionSubmitMapper,
         questionSubmit.setQuestionId(questionId);
         questionSubmit.setCode(questionSubmitAddRequest.getCode());
         questionSubmit.setLanguage(language);
-        // todo 设置初始状态
+
+        // 设置初始状态
         questionSubmit.setStatus(QuestionSubmitStatusEnum.WAITING.getValue());
         questionSubmit.setJudgeInfo("{}");
         boolean save = this.save(questionSubmit);
@@ -95,12 +98,29 @@ public class QuestionSubmitServiceImpl extends ServiceImpl<QuestionSubmitMapper,
             throw new BusinessException(ErrorCode.SYSTEM_ERROR, "数据插入失败");
         }
         Long questionSubmitId = questionSubmit.getId();
+        // 更新submitNum
+        UpdateWrapper<Question> submitUpdateWrapper = new UpdateWrapper<>();
+        submitUpdateWrapper.eq("id", questionId);
+        submitUpdateWrapper.setSql("submitNum = submitNum + 1");
+        boolean submitResult = questionService.update(null, submitUpdateWrapper);
+        if (!submitResult) {
+            log.error("更新submitNum失败，questionId: {}" + questionId);
+        }
         // 执行判题服务
-        CompletableFuture.runAsync(() -> {
-            judgeService.doJudge(questionSubmitId);
-        });
+        try {
+            CompletableFuture.runAsync(() -> {
+                judgeService.doJudge(questionSubmitId);
+                questionService.update()
+                        .eq("id", questionId)
+                        .setSql("acceptNum = acceptNum + 1")
+                        .update();
+            });
+        } catch (Exception e) {
+            throw new BusinessException(ErrorCode.SYSTEM_ERROR, "判题服务错误");
+        }
         return questionSubmitId;
     }
+
 
     /**
      * 封装了事务的方法

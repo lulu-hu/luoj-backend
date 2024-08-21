@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
 
 import lombok.extern.slf4j.Slf4j;
 import me.chanjar.weixin.common.bean.WxOAuth2UserInfo;
@@ -228,12 +229,13 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         if (token == null) {
             throw new BusinessException(ErrorCode.NOT_LOGIN_ERROR, "未登录");
         }
+        HttpSession session = request.getSession(false); // 不创建新 session
+        if (session == null) {
+            throw new BusinessException(ErrorCode.NOT_LOGIN_ERROR, "未登录");
+        }
         DecodedJWT decodedJWT = JwtUtils.decode(token);
         String id = decodedJWT.getClaim("id").asString();
 
-        if (request.getSession().getAttribute(USER_LOGIN_STATE) == null) {
-            throw new BusinessException(ErrorCode.OPERATION_ERROR, "未登录");
-        }
         // 移除登录态
         request.getSession().removeAttribute(USER_LOGIN_STATE + id);
         return true;

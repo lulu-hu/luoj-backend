@@ -10,8 +10,6 @@ import java.util.List;
 /**
  * 查询请求
  *
- * @author <a href="https://github.com/liyupi">程序员鱼皮</a>
- * @from <a href="https://yupi.icu">编程导航知识星球</a>
  */
 @EqualsAndHashCode(callSuper = true)
 @Data
@@ -41,11 +39,6 @@ public class QuestionQueryRequest extends PageRequest implements Serializable {
      * 题目答案
      */
     private String answer;
-
-    /**
-     * 题目提交数
-     */
-    private Integer submitNum;
 
     /**
      * 创建用户 id

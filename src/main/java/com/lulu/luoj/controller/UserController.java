@@ -30,6 +30,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import com.lulu.luoj.utils.JwtUtils;
+import com.lulu.luoj.utils.PictureVerificationCodeUtils;
 import lombok.extern.slf4j.Slf4j;
 import me.chanjar.weixin.common.bean.WxOAuth2UserInfo;
 import me.chanjar.weixin.common.bean.oauth2.WxOAuth2AccessToken;
@@ -61,6 +62,8 @@ public class UserController {
     @Resource
     private WxOpenConfig wxOpenConfig;
 
+    @Resource
+    private PictureVerificationCodeUtils verificationCodeUtils;
     // region 登录相关
 
     /**
@@ -98,11 +101,29 @@ public class UserController {
         }
         String userAccount = userLoginRequest.getUserAccount();
         String userPassword = userLoginRequest.getUserPassword();
+        String verifyCode = userLoginRequest.getVerifyCode(); // 新增字段，获取前端传来的验证码
+        String verifyCodeKey = userLoginRequest.getVerifyCodeKey(); // 新增字段，获取前端传来的验证码 key
+
         if (StringUtils.isAnyBlank(userAccount, userPassword)) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
+        // 校验验证码
+        boolean verifyResult = verificationCodeUtils.verify(verifyCode, verifyCodeKey);
+        if (!verifyResult) {
+            throw new BusinessException(ErrorCode.VERIFICATION_CODE_ERROR, "验证码错误");
+        }
         LoginUserVO loginUserVO = userService.userLogin(userAccount, userPassword, request);
         return ResultUtils.success(loginUserVO);
+    }
+
+    /**
+     *  生成验证码
+     * @return
+     */
+    @PostMapping("/generate-verification-code")
+    public BaseResponse<Map<String, String>> generateVerificationCode() {
+        Map<String, String> verifyCodeKey = verificationCodeUtils.create();
+        return ResultUtils.success(verifyCodeKey);
     }
 
     /**
